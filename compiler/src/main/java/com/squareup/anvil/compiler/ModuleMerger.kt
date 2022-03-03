@@ -47,9 +47,7 @@ internal class ModuleMerger(
 ) : ExpressionCodegenExtension {
 
   override fun generateClassSyntheticParts(codegen: ImplementationBodyCodegen) {
-    // If we're evaluating an anonymous inner class, it cannot merge anything and will cause
-    // a failure if we try to resolve its [ClassId]
-    if (DescriptorUtils.isAnonymousObject(codegen.descriptor)) return
+    if (codegen.descriptor.shouldIgnore()) return
 
     val module = moduleDescriptorFactory.create(codegen.descriptor.module)
     val clazz = codegen.descriptor.toClassReference(module)

@@ -31,9 +31,7 @@ internal class InterfaceMerger(
     thisDescriptor: ClassDescriptor,
     supertypes: MutableList<KotlinType>
   ) {
-    // If we're evaluating an anonymous inner class, it cannot merge anything and will cause
-    // a failure if we try to resolve its [ClassId]
-    if (DescriptorUtils.isAnonymousObject(thisDescriptor)) return
+    if (thisDescriptor.shouldIgnore()) return
 
     val module = moduleDescriptorFactory.create(thisDescriptor.module)
     val mergeAnnotatedClass = thisDescriptor.toClassReference(module)

@@ -1155,14 +1155,17 @@ class ModuleMergerTest(
           val entryMethod: DetailedTrait
         ) : Parent() {
           companion object {
-            @JvmField
-            val CREATOR = object : Parcelable.Creator<Child> {
-              override fun createFromParcel(source: Parcel): Child {
-                TODO("Not yet implemented")
+            val CREATOR: Parcelable.Creator<Child>
+             get() {
+              class Creator : Parcelable.Creator<Child> {
+                override fun createFromParcel(source: Parcel): Child {
+                  TODO("Not yet implemented")
+                }
+                override fun newArray(size: Int): Array<Child> {
+                  TODO("Not yet implemented")
+                }
               }
-              override fun newArray(size: Int): Array<Child> {
-                TODO("Not yet implemented")
-              }
+              return Creator()
             }
           }
         }
