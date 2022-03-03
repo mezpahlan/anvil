@@ -3,14 +3,20 @@ package com.squareup.anvil.compiler
 import com.google.common.truth.Truth.assertThat
 import com.squareup.anvil.annotations.MergeComponent
 import com.squareup.anvil.annotations.MergeSubcomponent
+import com.squareup.anvil.compiler.api.CodeGenerator
 import com.squareup.anvil.compiler.internal.testing.AnyDaggerComponent
 import com.squareup.anvil.compiler.internal.testing.anyDaggerComponent
+import com.squareup.anvil.compiler.internal.testing.compileAnvil
 import com.squareup.anvil.compiler.internal.testing.daggerComponent
 import com.squareup.anvil.compiler.internal.testing.daggerModule
 import com.squareup.anvil.compiler.internal.testing.daggerSubcomponent
 import com.squareup.anvil.compiler.internal.testing.withoutAnvilModule
+import com.tschuchort.compiletesting.KotlinCompilation.ExitCode
+import com.tschuchort.compiletesting.KotlinCompilation.Result
 import dagger.Component
 import dagger.Subcomponent
+import org.intellij.lang.annotations.Language
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -1128,4 +1134,84 @@ class ModuleMergerTest(
 
   private val Class<*>.anyDaggerComponent: AnyDaggerComponent
     get() = anyDaggerComponent(annotationClass)
+
+  // TODO: Change to more generic name after finding root issue
+  @Test fun `modules merged for parcelable-like impl with IR`() {
+    assumeTrue(USE_IR)
+
+    val otherModuleResult = compile(
+      """
+      package com.squareup.test
+      
+      import com.squareup.anvil.annotations.ContributesTo
+      import dagger.Module
+      import dagger.Provides
+
+      sealed class Parent : Parcelable {
+        abstract val trait: String
+        
+        data class Child(
+          override val trait: String,
+          val entryMethod: DetailedTrait
+        ) : Parent() {
+          companion object {
+            @JvmField
+            val CREATOR = object : Parcelable.Creator<Child> {
+              override fun createFromParcel(source: Parcel): Child {
+                TODO("Not yet implemented")
+              }
+              override fun newArray(size: Int): Array<Child> {
+                TODO("Not yet implemented")
+              }
+            }
+          }
+        }
+      }
+
+      class Parcel
+
+      interface Parcelable {
+        interface Creator<T> {
+          fun createFromParcel(source: Parcel): T
+      
+          fun newArray(size: Int): Array<T> 
+        }
+      }
+
+      enum class DetailedTrait {
+        YOUNG, OLD
+      }
+
+      @ContributesTo(Any::class)
+      @Module
+      class DaggerModule1 {
+        @Provides
+        fun provideFunction(): Parent.Child {
+          return Parent.Child("lorem", DetailedTrait.YOUNG)
+        }
+      }
+      """
+    ) {
+      assertThat(exitCode).isEqualTo(ExitCode.OK)
+    }
+
+    compile(
+      """
+      package com.squareup.test
+
+      import com.squareup.anvil.annotations.ContributesTo
+      import dagger.Module
+      import dagger.Provides
+      $import
+
+      $annotation(scope = Any::class)
+      interface ComponentInterface {
+        fun providesSomething(): Parent.Child
+      }
+      """,
+      previousCompilationResult = otherModuleResult
+    ) {
+      assertThat(exitCode).isEqualTo(ExitCode.OK)
+    }
+  }
 }
