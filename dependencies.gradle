@@ -11,9 +11,6 @@ ext {
   kotlinVersion = project.hasProperty('square.kotlinVersion') ?
       project.getProperty('square.kotlinVersion') : '1.7.20-dev-2726'
 
-  kotlinUseIR = (project.hasProperty('square.useIR') ?
-      project.getProperty('square.useIR') : 'true').toBoolean()
-
   kotlinPreview = !kotlinVersion.startsWith('1.7.1')
 
   generateDaggerFactoriesWithAnvil = (project.hasProperty('square.generateDaggerFactoriesWithAnvil') ?
@@ -28,9 +25,7 @@ ext {
   fullTestRun = (project.hasProperty('square.fullTestRun') ?
       project.getProperty('square.fullTestRun') : 'true').toBoolean()
 
-  // TODO: Remove when we remove the old backend.
-  // TODO Repeatable: After cleaning up all deprecated methods remove the `&& false`.
-  makeWarningsErrors = ci && (kotlinVersion.startsWith('1.5') || kotlinUseIR) && false
+  makeWarningsErrors = ci
 
   ktlintVersion = "0.41.0"
 
