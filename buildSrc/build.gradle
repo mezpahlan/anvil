@@ -5,6 +5,12 @@ buildscript {
     google()
     mavenCentral()
     gradlePluginPortal()
+
+    if (rootProject.ext.kotlinPreview) {
+      maven { url 'https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap' }
+      maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots' }
+      maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    }
   }
 
   dependencies {
@@ -16,6 +22,12 @@ buildscript {
 repositories {
   google()
   mavenCentral()
+
+  if (rootProject.ext.kotlinPreview) {
+    maven { url 'https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap' }
+    maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots' }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+  }
 }
 
 apply plugin: 'org.jetbrains.kotlin.jvm'
